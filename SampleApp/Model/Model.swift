@@ -10,6 +10,8 @@ fileprivate let kAPPTokenKey = "app_token"
 fileprivate let kOwnerIdKey = "owner_id"
 fileprivate let kConstantsPlistFileName = "SampleAuthConstants"
 
+typealias AppBuildInfo = String
+
 @objc class Model:NSObject {
     
     private(set) lazy var permissions:Permissions = Permissions()
@@ -54,10 +56,18 @@ fileprivate let kConstantsPlistFileName = "SampleAuthConstants"
     
     private var permissionsCompletionCancellable:AnyCancellable?
     private var gatewayServiceMessageCancellable:AnyCancellable?
-    
+    var appBuildInfo:AppBuildInfo = ""
     //MARK: -
     override init() {
         super.init()
+        DispatchQueue.global(qos: .default).async {[weak self] in
+            guard let self else { return }
+            
+            if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
+               let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
+                self.appBuildInfo = "\(version) (build \(build))"
+            }
+        }
     }
     
     func loadRequiredData() {
@@ -85,7 +95,7 @@ fileprivate let kConstantsPlistFileName = "SampleAuthConstants"
         
         let accountIdContainer = NonEmptyCollectionContainer<String>(ownerId) ?? NonEmptyCollectionContainer("SampleApp_Test")!
         
-        let appVersionContainer = NonEmptyCollectionContainer("<supply App Version here>")!
+        let appVersionContainer = NonEmptyCollectionContainer(self.appBuildInfo) ?? NonEmptyCollectionContainer("<supply App Version here>")!
         let deviceIdContainer = NonEmptyCollectionContainer<String>(Device.deviceId) ?? NonEmptyCollectionContainer("<Supply some Unique UUID string>")!
         
         let receivers:BLEUExternalReceivers = BLEUExternalReceivers(bridgesUpdater: nil, //to listen to nearby bridges
