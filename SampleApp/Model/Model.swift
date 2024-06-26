@@ -86,7 +86,7 @@ fileprivate let kConstantsPlistFileName = "SampleAuthConstants"
         let accountIdContainer = NonEmptyCollectionContainer<String>(ownerId) ?? NonEmptyCollectionContainer("SampleApp_Test")!
         
         let appVersionContainer = NonEmptyCollectionContainer("<supply App Version here>")!
-        let deviceIdContainer = NonEmptyCollectionContainer("<Supply some Unique UUID string>")!
+        let deviceIdContainer = NonEmptyCollectionContainer<String>(Device.deviceId) ?? NonEmptyCollectionContainer("<Supply some Unique UUID string>")!
         
         let receivers:BLEUExternalReceivers = BLEUExternalReceivers(bridgesUpdater: nil, //to listen to nearby bridges
                                                                     blePixelResolver: nil, //agent responsible for resolving pixel payload into pixel ID
