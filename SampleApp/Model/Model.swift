@@ -2,7 +2,15 @@ import Foundation
 import Combine
 
 import WiliotCore
-import BLEUpstream
+import WiliotBLEUpstream
+
+import OSLog
+
+#if DEBUG
+let logger = Logger(subsystem: "Sample App", category: "Model")
+#else
+let logger = Logger(.disabled)
+#endif
 
 ///plist value reading key
 fileprivate let kAPPTokenKey = "app_token"
@@ -88,59 +96,7 @@ typealias AppBuildInfo = String
         return true
     }
     
-    private func prepare(completion: @escaping ((Error?) -> ())) {
-        let token:String = self.appToken
-        let ownerId:String = self.ownerId
-        
-        let gatewayAuthToken:NonEmptyCollectionContainer<String> = .init(token) ?? .init("<supply Gateway_Auth_token>")!
-        
-        let accountIdContainer = NonEmptyCollectionContainer<String>(ownerId) ?? NonEmptyCollectionContainer("SampleApp_Test")!
-        let deviceIdStr:String = Device.deviceId
-        let appVersionContainer = NonEmptyCollectionContainer(self.appBuildInfo) ?? NonEmptyCollectionContainer("<supply App Version here>")!
-        let deviceIdContainer = NonEmptyCollectionContainer(deviceIdStr)!
-        
-        let receivers:BLEUExternalReceivers = BLEUExternalReceivers(bridgesUpdater: nil, //to listen to nearby bridges
-                                                                    blePixelResolver: nil, //agent responsible for resolving pixel payload into pixel ID
-                                                                    pixelsRSSIUpdater: nil, //to receive RSSI values updates per pixel
-                                                                    resolvedPacketsInfoReceiver: nil) //to receive resolved pixel IDs
-        
-        let coordinatesContainer: any LocationCoordinatesContainer
-        
-
-        if let locService = self.locationService {
-            coordinatesContainer = locService
-        }
-        else {
-            let locService = LocationService()
-            coordinatesContainer = WeakObject(locService)
-            self.locationService = locService
-        }
-        
-        
-        
-        let config:BLEUServiceConfiguration = BLEUServiceConfiguration(accountId: accountIdContainer,
-                                                                       appVersion: appVersionContainer,
-                                                                       endpoint: BLEUpstreamEndpoint.prod(),
-                                                                       deviceId: deviceIdContainer,
-                                                                       pacingEnabled: true,
-                                                                       tagPayloadsLoggingEnabled: false,
-                                                                       coordinatesContainer: coordinatesContainer,
-                                                                       externalReceivers: receivers,
-                                                                       externalLogger: nil)
-        
-        do {
-            let upstreamService = try BLEUpstreamService(configuration: config)
-            self.bleUpstreamService = upstreamService
-            upstreamService.prepare(withToken: gatewayAuthToken)
-            completion(nil)
-        }
-        catch {
-            #if DEBUG
-            print("BLEUpstream failed to prepare: \(error)")
-            #endif
-            completion(error)
-        }
-    }
+   
     
     
     private func start() {
@@ -229,24 +185,110 @@ typealias AppBuildInfo = String
         _permissionsPublisher.send(granted)
         
         if canPrepare() {
-            prepare {[weak self] error in
-                guard let weakModel = self else {
-                    return
-                }
-                
-                if let error = error {
-                    
-                }
-                else {
-                    weakModel.start()
-                }
-            }
+            self.startGatewayRegistrationForTokens()
         }
         
     }
 
+    private func startGatewayRegistrationForTokens() {
+        let netService = NetworkService(appKey: self.appToken, ownerId: self.ownerId)
+        self.networkService = netService
+        let deviceId = Device.deviceId
+        
+        netService.registerGatewayFor(owner: self.ownerId, gatewayId: deviceId, authToken: self.appToken) { [weak self] tokensResult in
+            guard let self else {
+                return
+            }
+            
+            self.handleGatewayTokensResult( tokensResult )
+        }
+        
+    }
+    
+    private func handleGatewayTokensResult(_ tokensResult:TokensResult) {
+        switch tokensResult {
+        case .success(let gwTokens):
+            logger.info("Gateway Tokens Resut: AUTH: \(String(describing: gwTokens.auth)), REFRESH: \(String(describing: gwTokens.refresh))")
+            
+            guard let gwAuth = gwTokens.auth else {
+                _statusPublisher.send("Failuere Registering MobileGateway: not found GW Auth token")
+                return
+            }
+            
+            self.prepare(withGatewayToken: gwAuth) {[weak self] possibleError in
+                guard let self else { return }
+                
+                if let error = possibleError {
+                    _statusPublisher.send("Failed to prepare Mobile Gateway: \(error)")
+                }
+                else {
+                    self.startGateway()
+                }
+            }
+            
+        case .failure(let error) :
+            let message:String = "Failuere Registering MobileGateway: \(error.localizedDescription)"
+            
+            logger.warning("\(message)")
+            _statusPublisher.send(message)
+        }
+    }
+    
     // MARK: -
+    private func prepare(withGatewayToken gwToken:String,  completion: @escaping ((Error?) -> ())) {
+        
+        let ownerId:String = self.ownerId
+        
+        let gatewayAuthToken:NonEmptyCollectionContainer<String> = .init(gwToken) ?? .init("<supply Gateway_Auth_token>")!
+        
+        let accountIdContainer = NonEmptyCollectionContainer<String>(ownerId) ?? NonEmptyCollectionContainer("SampleApp_Test")!
+        let deviceIdStr:String = Device.deviceId
+        let appVersionContainer = NonEmptyCollectionContainer(self.appBuildInfo) ?? NonEmptyCollectionContainer("<supply App Version here>")!
+        let deviceIdContainer = NonEmptyCollectionContainer(deviceIdStr)!
+        
+        let receivers:BLEUExternalReceivers = BLEUExternalReceivers(bridgesUpdater: nil, //to listen to nearby bridges
+                                                                    blePixelResolver: nil, //agent responsible for resolving pixel payload into pixel ID
+                                                                    pixelsRSSIUpdater: nil, //to receive RSSI values updates per pixel
+                                                                    resolvedPacketsInfoReceiver: nil) //to receive resolved pixel IDs
+        
+        let coordinatesContainer: any LocationCoordinatesContainer
+        
 
+        if let locService = self.locationService {
+            coordinatesContainer = locService
+        }
+        else {
+            let locService = LocationService()
+            coordinatesContainer = WeakObject(locService)
+            self.locationService = locService
+        }
+        
+        
+        
+        let config:BLEUServiceConfiguration = BLEUServiceConfiguration(accountId: accountIdContainer,
+                                                                       appVersion: appVersionContainer,
+                                                                       endpoint: BLEUpstreamEndpoint.prod(),
+                                                                       deviceId: deviceIdContainer,
+                                                                       pacingEnabled: true,
+                                                                       tagPayloadsLoggingEnabled: false,
+                                                                       coordinatesContainer: coordinatesContainer,
+                                                                       externalReceivers: receivers,
+                                                                       externalLogger: nil)
+        
+        do {
+            let upstreamService = try BLEUpstreamService(configuration: config)
+            self.bleUpstreamService = upstreamService
+            upstreamService.prepare(withToken: gatewayAuthToken)
+            completion(nil)
+        }
+        catch {
+            #if DEBUG
+            print("BLEUpstream failed to prepare: \(error)")
+            #endif
+            completion(error)
+        }
+    }
+    
     private func startGateway() {
         guard let upstreamService = self.bleUpstreamService else {
             return
@@ -256,9 +298,10 @@ typealias AppBuildInfo = String
             try upstreamService.start()
         }
         catch {
-            #if DEBUG
-            print("Model Failed to start BLEUpstreamService: \(error)")
-            #endif
+            
+            let message:String = "Model Failed to start BLEUpstreamService: \(error)"
+            logger.warning("\(message)")
+            _statusPublisher.send(message)
         }
     }
 
