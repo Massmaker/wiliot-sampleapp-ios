@@ -10,6 +10,8 @@ fileprivate let kAPPTokenKey = "app_token"
 fileprivate let kOwnerIdKey = "owner_id"
 fileprivate let kConstantsPlistFileName = "SampleAuthConstants"
 
+typealias AppBuildInfo = String
+
 @objc class Model:NSObject {
     
     private(set) lazy var permissions:Permissions = Permissions()
@@ -54,11 +56,11 @@ fileprivate let kConstantsPlistFileName = "SampleAuthConstants"
     
     private var permissionsCompletionCancellable:AnyCancellable?
     private var gatewayServiceMessageCancellable:AnyCancellable?
-    private var appBuildInfo:String = ""
+
+    var appBuildInfo:AppBuildInfo = ""
     //MARK: -
     override init() {
         super.init()
-        
         DispatchQueue.global(qos: .default).async {[weak self] in
             guard let self else { return }
             
@@ -67,7 +69,6 @@ fileprivate let kConstantsPlistFileName = "SampleAuthConstants"
                 self.appBuildInfo = "\(version) (build \(build))"
             }
         }
-        
     }
     
     func loadRequiredData() {
@@ -105,6 +106,7 @@ fileprivate let kConstantsPlistFileName = "SampleAuthConstants"
         
         let coordinatesContainer: any LocationCoordinatesContainer
         
+
         if let locService = self.locationService {
             coordinatesContainer = locService
         }
