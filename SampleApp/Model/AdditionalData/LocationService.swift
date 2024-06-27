@@ -4,6 +4,8 @@
 import Foundation
 import CoreLocation
 import Combine
+import WiliotBLEUpstream
+
 
 class LocationService {
     private var locationManager: CLLocationManager = CLLocationManager()
@@ -23,7 +25,7 @@ class LocationService {
 
 }
 
-import BLEUpstream
+
 extension LocationService: LocationCoordinatesContainer {
     var currentLocationCoordinates:CLLocationCoordinate2D? {
         lastLocation?.coordinate ?? currentLocation?.coordinate // still it cam be nil
