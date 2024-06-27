@@ -56,6 +56,7 @@ typealias AppBuildInfo = String
     
     private var permissionsCompletionCancellable:AnyCancellable?
     private var gatewayServiceMessageCancellable:AnyCancellable?
+
     var appBuildInfo:AppBuildInfo = ""
     //MARK: -
     override init() {
@@ -94,9 +95,9 @@ typealias AppBuildInfo = String
         let gatewayAuthToken:NonEmptyCollectionContainer<String> = .init(token) ?? .init("<supply Gateway_Auth_token>")!
         
         let accountIdContainer = NonEmptyCollectionContainer<String>(ownerId) ?? NonEmptyCollectionContainer("SampleApp_Test")!
-        
+        let deviceIdStr:String = Device.deviceId
         let appVersionContainer = NonEmptyCollectionContainer(self.appBuildInfo) ?? NonEmptyCollectionContainer("<supply App Version here>")!
-        let deviceIdContainer = NonEmptyCollectionContainer<String>(Device.deviceId) ?? NonEmptyCollectionContainer("<Supply some Unique UUID string>")!
+        let deviceIdContainer = NonEmptyCollectionContainer(deviceIdStr)!
         
         let receivers:BLEUExternalReceivers = BLEUExternalReceivers(bridgesUpdater: nil, //to listen to nearby bridges
                                                                     blePixelResolver: nil, //agent responsible for resolving pixel payload into pixel ID
@@ -105,6 +106,7 @@ typealias AppBuildInfo = String
         
         let coordinatesContainer: any LocationCoordinatesContainer
         
+
         if let locService = self.locationService {
             coordinatesContainer = locService
         }

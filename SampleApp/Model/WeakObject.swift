@@ -2,7 +2,8 @@
 //  WeakObject.swift
 
 import Foundation
-import BLEUpstream
+
+import WiliotBLEUpstream
 import CoreLocation
 import WiliotCore
 

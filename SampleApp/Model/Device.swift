@@ -3,6 +3,8 @@
 import UIKit
 fileprivate let kDeviceIdUserDefaultsKey:String = "SampleAppDeviceID"
 
+fileprivate let kDeviceIdKey:String = "SampleAppDeviceId"
+
 class Device {
     private static var deviceID:String = ""
     
