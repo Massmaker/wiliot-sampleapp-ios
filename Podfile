@@ -1,16 +1,17 @@
 platform :ios, '15.4'
 inhibit_all_warnings!
+workspace './SampleApp.xcworkspace'
 
-target 'SampleApp' do
+# target 'SampleApp' do
   # Comment the next line if you're not using Swift and don't want to use dynamic frameworks
-  use_frameworks!
-  pod 'JWTDecode'
-end
+#  use_frameworks!
+  # pod 'JWTDecode'
+# end
 
-target 'MQTTClient' do
-    use_frameworks!
-    pod 'CocoaMQTT'
-end
+# target 'MQTTClient' do
+  #  use_frameworks!
+  #  pod 'CocoaMQTT'
+# end
 
 # post_install do |installer|
  # installer.pods_project.targets.each do |target|
