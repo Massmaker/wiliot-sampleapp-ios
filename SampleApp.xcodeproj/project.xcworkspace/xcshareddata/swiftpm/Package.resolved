@@ -1,0 +1,60 @@
+{
+  "originHash" : "7df6a04bb1761787f13d866152f7c611f32e9f38f535e0137efec2c1a16b73e1",
+  "pins" : [
+    {
+      "identity" : "cocoamqtt",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/emqx/CocoaMQTT.git",
+      "state" : {
+        "revision" : "aff43422925cc30b9af319f4c4dce4f52859baf4",
+        "version" : "2.1.8"
+      }
+    },
+    {
+      "identity" : "mqttcocoaasyncsocket",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leeway1208/MqttCocoaAsyncSocket",
+      "state" : {
+        "revision" : "ce3e18607fd01079495f86ff6195d8a3ca469f73",
+        "version" : "1.0.8"
+      }
+    },
+    {
+      "identity" : "starscream",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/daltoniam/Starscream.git",
+      "state" : {
+        "revision" : "c6bfd1af48efcc9a9ad203665db12375ba6b145a",
+        "version" : "4.0.8"
+      }
+    },
+    {
+      "identity" : "wiliotbleupstream",
+      "kind" : "remoteSourceControl",
+      "location" : "git@bitbucket.org:wiliot/wiliotbleupstream.git",
+      "state" : {
+        "revision" : "26c71f82d5f97a01c33206a9a4d264e69cd2567b",
+        "version" : "1.0.5"
+      }
+    },
+    {
+      "identity" : "wiliotcore_ios",
+      "kind" : "remoteSourceControl",
+      "location" : "git@bitbucket.org:wiliot/wiliotcore_ios.git",
+      "state" : {
+        "revision" : "f5b73319c077fc439e71b85f5ee938be17af2be9",
+        "version" : "1.0.4"
+      }
+    },
+    {
+      "identity" : "wiliotmqttclient_ios",
+      "kind" : "remoteSourceControl",
+      "location" : "git@bitbucket.org:wiliot/wiliotmqttclient_ios.git",
+      "state" : {
+        "revision" : "a80d4efcf2c3df6af0f47440e7cdb6dafe85bba7",
+        "version" : "1.0.1"
+      }
+    }
+  ],
+  "version" : 3
+}
